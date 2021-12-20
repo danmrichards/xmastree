@@ -3,55 +3,113 @@ package main
 import (
 	"image"
 	"image/color"
-	"image/png"
+	"image/color/palette"
+	"image/draw"
+	"image/gif"
 	"log"
+	"math/rand"
 	"os"
 
-	"github.com/danmrichards/xmastree/internal/draw"
+	tdraw "github.com/danmrichards/xmastree/internal/draw"
+	trand "github.com/danmrichards/xmastree/internal/rand"
 )
 
 const w, h = 800, 600
 
 var (
-	img   = image.NewRGBA(image.Rect(0, 0, w, h))
-	green = color.RGBA{G: 153, B: 51, A: 255}
-	red   = color.RGBA{R: 200, A: 255}
+	// Colours.
+	treeGreen = color.RGBA{G: 153, B: 51, A: 255}
+	potRed    = color.RGBA{R: 153, A: 255}
+	lightBlue = color.RGBA{G: 204, B: 255, A: 255}
+	lightRed  = color.RGBA{R: 255, A: 255}
+	lightPink = color.RGBA{R: 255, B: 255, A: 255}
+
+	treeLights = []color.RGBA{lightBlue, lightRed, lightPink}
 )
 
-func main() {
+func tree(w, h int) *image.Paletted {
+	img := image.NewPaletted(image.Rect(0, 0, w, h), palette.Plan9)
+	img.SetColorIndex(w/2, h/2, 1)
+
 	// Draw the tree.
-	draw.TriangleFlatBottom(
+	tdraw.TriangleFlatBottom(
 		img,
-		draw.Vertex{
+		tdraw.Vertex{
 			X: w / 2,
 			Y: 30,
 		},
-		draw.Vertex{
+		tdraw.Vertex{
 			X: w / 4,
 			Y: h - (h / 4),
 		},
-		draw.Vertex{
+		tdraw.Vertex{
 			X: (w / 2) + (w / 4),
 			Y: h - (h / 4),
 		},
-		green,
+		treeGreen,
+		func(img draw.Image, x1, y, x2 int, c color.RGBA) {
+			// Fill the tree.
+			tdraw.HLine(img, x1, y, x2, c)
+		},
+	)
+
+	// Draw lights.
+	//
+	// Use the triangle function again to ensure that we're drawing the lights
+	// roughly within the boundaries of the tree, but the callback just adds
+	// the lights instead of filling the tree.
+	var lastY int
+	tdraw.TriangleFlatBottom(
+		img,
+		tdraw.Vertex{
+			X: w / 2,
+			Y: 30,
+		},
+		tdraw.Vertex{
+			X: w / 4,
+			Y: h - (h / 4),
+		},
+		tdraw.Vertex{
+			X: (w / 2) + (w / 4),
+			Y: h - (h / 4),
+		},
+		treeGreen,
+		func(img draw.Image, x1, y, x2 int, c color.RGBA) {
+			if (y - lastY) < 40 {
+				return
+			}
+			lastY = y
+			tdraw.FilledCircle(img, trand.IntRange(x1, x2), y, 10, treeLights[rand.Intn(len(treeLights))])
+			tdraw.FilledCircle(img, trand.IntRange(x1, x2), y, 10, treeLights[rand.Intn(len(treeLights))])
+			tdraw.FilledCircle(img, trand.IntRange(x1, x2), y, 10, treeLights[rand.Intn(len(treeLights))])
+		},
 	)
 
 	// Draw the pot.
-	draw.Rectangle(
+	tdraw.Rectangle(
 		img,
-		draw.Vertex{X: (w / 2) - (w / 10), Y: h - (h / 4)},
-		draw.Vertex{X: (w / 2) + (w / 10), Y: h - (h / 10)},
-		red,
+		tdraw.Vertex{X: (w / 2) - (w / 10), Y: h - (h / 4)},
+		tdraw.Vertex{X: (w / 2) + (w / 10), Y: h - (h / 10)},
+		potRed,
 	)
 
-	f, err := os.Create("draw.png")
+	return img
+}
+
+func main() {
+	f, err := os.Create("tree.gif")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
-	if err = png.Encode(f, img); err != nil {
+	var anim gif.GIF
+	for i := 0; i < 5; i++ {
+		anim.Image = append(anim.Image, tree(w, h))
+		anim.Delay = append(anim.Delay, 100)
+	}
+
+	if err = gif.EncodeAll(f, &anim); err != nil {
 		log.Fatal(err)
 	}
 }
