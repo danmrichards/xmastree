@@ -78,6 +78,7 @@ func Circle(img draw.Image, x0, y0, r int, c color.Color) {
 	}
 }
 
+// FilledCircle draws a filled circle with the given radius and colour.
 func FilledCircle(img draw.Image, x0, y0, r int, c color.Color) {
 	for dr := r; dr > 0; dr-- {
 		Circle(img, x0, y0, dr, c)
