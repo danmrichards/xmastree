@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/color/palette"
@@ -14,7 +15,10 @@ import (
 	trand "github.com/danmrichards/xmastree/internal/rand"
 )
 
-const w, h = 800, 600
+const (
+	w, h = 800, 600
+	out  = "tree.gif"
+)
 
 var (
 	// Colours.
@@ -97,12 +101,17 @@ func tree(w, h int) *image.Paletted {
 }
 
 func main() {
-	f, err := os.Create("tree.gif")
+	fmt.Println("Initiating holiday cheer...")
+
+	f, err := os.Create(out)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
+	fmt.Println("Reticulating splines...")
+
+	// Render 5 frames with a 1-second delay.
 	var anim gif.GIF
 	for i := 0; i < 5; i++ {
 		anim.Image = append(anim.Image, tree(w, h))
@@ -112,4 +121,6 @@ func main() {
 	if err = gif.EncodeAll(f, &anim); err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("Ho! Ho! Ho! Open %s for an xmas treat\n", out)
 }

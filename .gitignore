@@ -117,3 +117,4 @@ bin
 
 *.png
 *.gif
+!example.gif
