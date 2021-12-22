@@ -25,16 +25,18 @@ func HLine(img draw.Image, x1, y, x2 int, c color.RGBA) {
 // TriangleFlatBottom draws a flat-bottom triangle, defined by the 3 vertices,
 // filled with the given colour.
 func TriangleFlatBottom(img draw.Image, v1, v2, v3 Vertex, c color.RGBA, f TriangleScanLineFunc) {
-	invslope1 := float32(v2.X-v1.X) / float32(v2.Y-v1.Y)
-	invslope2 := float32(v3.X-v1.X) / float32(v3.Y-v1.Y)
+	// Slopes angle.
+	dx1 := float32(v2.X-v1.X) / float32(v2.Y-v1.Y)
+	dx2 := float32(v3.X-v1.X) / float32(v3.Y-v1.Y)
 
-	curx1 := float32(v1.X)
-	curx2 := float32(v1.X)
+	// Current x positions.
+	cx1 := float32(v1.X)
+	cx2 := float32(v1.X)
 
 	for scanlineY := v1.Y; scanlineY <= v2.Y; scanlineY++ {
-		f(img, int(curx1), scanlineY, int(curx2), c)
-		curx1 += invslope1
-		curx2 += invslope2
+		f(img, int(cx1), scanlineY, int(cx2), c)
+		cx1 += dx1
+		cx2 += dx2
 	}
 }
 
