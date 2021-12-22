@@ -51,29 +51,28 @@ func Rectangle(img draw.Image, v1, v2 Vertex, c color.RGBA) {
 }
 
 // Circle draws a circle with the given radius and colour.
-func Circle(img draw.Image, x0, y0, r int, c color.Color) {
-	x, y, dx, dy := r-1, 0, 1, 1
-	err := dx - (r * 2)
-
-	for x > y {
-		img.Set(x0+x, y0+y, c)
-		img.Set(x0+y, y0+x, c)
-		img.Set(x0-y, y0+x, c)
-		img.Set(x0-x, y0+y, c)
-		img.Set(x0-x, y0-y, c)
-		img.Set(x0-y, y0-x, c)
-		img.Set(x0+y, y0-x, c)
-		img.Set(x0+x, y0-y, c)
-
-		if err <= 0 {
-			y++
-			err += dy
-			dy += 2
+func Circle(img draw.Image, x, y, r int, c color.Color) {
+	if r < 0 {
+		return
+	}
+	// Bresenham algorithm
+	x1, y1, err := -r, 0, 2-2*r
+	for {
+		img.Set(x-x1, y+y1, c)
+		img.Set(x-y1, y-x1, c)
+		img.Set(x+x1, y-y1, c)
+		img.Set(x+y1, y+x1, c)
+		r = err
+		if r > x1 {
+			x1++
+			err += x1*2 + 1
 		}
-		if err > 0 {
-			x--
-			dx += 2
-			err += dx - (r * 2)
+		if r <= y1 {
+			y1++
+			err += y1*2 + 1
+		}
+		if x1 >= 0 {
+			break
 		}
 	}
 }
